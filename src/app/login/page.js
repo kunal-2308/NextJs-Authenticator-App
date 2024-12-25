@@ -3,17 +3,42 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { RiLoader2Line } from "react-icons/ri";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [user, setUser] = React.useState({
     email: "",
     password: "",
   });
 
-  const onLogin = async () => {
-    // Add login logic here
+  const [loading, setLoading] = React.useState(false);
+
+  // Handle form submission
+  const onLogin = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+    try {
+      setLoading(true);
+      // Make the API call to login the user
+      const response = await axios.post('/api/users/login', user);
+      console.log(response.data);
+      if (response.status === 200) {
+        toast.success(response.data.message); // Show success message
+        router.push('/profile'); // Redirect to profile page on successful login
+      } else {
+        toast.error(response.data.message); // Show error message if login fails
+      }
+    } catch (error) {
+      console.error(error.message);
+      toast.error(error.message); // Show error if request fails
+    } finally {
+      setLoading(false); // Reset loading state after request
+    }
   };
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUser((prevUser) => ({
@@ -37,7 +62,7 @@ export default function LoginPage() {
           </Link>
         </p>
         <form
-          onSubmit={onLogin}
+          onSubmit={onLogin} // Trigger onLogin on form submit
           className="w-full flex flex-col gap-y-6"
         >
           <div className="flex flex-col">
@@ -53,7 +78,7 @@ export default function LoginPage() {
               id="email"
               value={user.email}
               required
-              onChange={handleChange}
+              onChange={handleChange} // Handle input change
               className="px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your email"
             />
@@ -71,16 +96,16 @@ export default function LoginPage() {
               id="password"
               value={user.password}
               required
-              onChange={handleChange}
+              onChange={handleChange} // Handle input change
               className="px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your password"
             />
           </div>
           <button
-            type="submit"
-            className="w-full py-3 rounded-lg bg-blue-600 text-gray-100 font-medium text-lg hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all"
+            type="submit" // Submit the form
+            className="w-full py-3 rounded-lg bg-blue-600 text-gray-100 font-medium text-lg hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all flex justify-center items-center"
           >
-            Login
+            {loading ? <RiLoader2Line className="animate-spin" /> : "Login"}
           </button>
         </form>
         <p className="mt-8 text-sm text-gray-500">
@@ -91,7 +116,7 @@ export default function LoginPage() {
           and{" "}
           <a href="#" className="text-blue-400 hover:text-blue-300 underline">
             Privacy Policy
-          </a>.
+          </a>
         </p>
       </div>
     </div>

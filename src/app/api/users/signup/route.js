@@ -1,44 +1,56 @@
-import { connect } from "@/dbConfig/dbConfig";
-import { NextRequest,NextResponse } from "next/server";
+import connectDB from "@/dbConfig/dbConfig";
 import User from "@/models/userModel";
-import bcryptjs, { genSalt } from 'bcryptjs'
+import bcryptjs from "bcryptjs";
+import { NextResponse } from "next/server";
 
-connect();
+// Connect to the database
+connectDB();
 
-export const POST = async(request) =>{
-    try {
-        const reqBody = await request.json();
-        const{userName,email,password} = reqBody;
+export const POST = async (request) => {
+  try {
+    // Parse the request body
+    const reqBody = await request.json();
+    const { userName, email, password } = reqBody;
 
-        //find the user if he exists:
-        const user = await User.findOne({email});
+    // Check if the user already exists
+    const existingUser = await User.findOne({ email });
 
-        if(user){
-            return NextResponse.json(
-                {message:'User already exists'},
-                {status:500}
-            );
-        }
-
-       //hash the password:
-       const salt = await bcryptjs.genSalt(10);
-       const hashedPassword = await bcryptjs.hash(password,salt);
-
-       const newUser = new User({
-        userName,
-        email,
-        password:hashedPassword
-       });
-
-      let savedUser =  await newUser.save();
-
-       return NextResponse.json({
-        messaege:"New user created successfully"
-       },
-       {status:200},savedUser);
-
-
-    } catch (error) {
-        return NextResponse.json({error:error.message},{status:500});
+    if (existingUser) {
+      return NextResponse.json(
+        { message: "User already exists" },
+        { status: 400 }
+      );
     }
-}
+
+    // Hash the password
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPassword = await bcryptjs.hash(password, salt);
+
+    // Create and save the new user
+    const newUser = new User({
+      userName,
+      email,
+      password: hashedPassword,
+    });
+
+    const savedUser = await newUser.save();
+
+    return NextResponse.json(
+      {
+        message: "New user created successfully",
+        user: {
+          id: savedUser._id,
+          userName: savedUser.userName,
+          email: savedUser.email,
+        },
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error(error.message);
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    );
+  }
+};

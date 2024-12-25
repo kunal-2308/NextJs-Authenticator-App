@@ -2,17 +2,38 @@
 import React from "react";
 import axios from "axios";
 import Link from "next/link";
+import { RiLoader2Line } from "react-icons/ri";
+import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 export default function Signup() {
+  const router = useRouter();
+
   const [user, setUser] = React.useState({
     userName: "",
     email: "",
     password: "",
   });
 
-  const onSignup = async () => {
-    // Add signup logic here
+  const [Loading, setLoading] = React.useState(false);
+
+  const onSignup = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+
+   try {
+    setLoading(true);
+    let response = await axios.post('/api/users/signup',user);
+    console.log('Signup Response : ',response.data);
+    setLoading(false);
+    router.push('/login');
+    
+   } catch (error) {
+    console.log(error.message);
+    setLoading(false);
+   }
+   finally{
+    setLoading(false);
+   }
   };
 
   const handleChange = (e) => {
@@ -23,13 +44,12 @@ export default function Signup() {
     }));
   };
 
-  const[showPassword,setShowPassword] = React.useState('show');
+  const [showPassword, setShowPassword] = React.useState("show");
 
-  const handleShowPassword = (e)=>{
+  const handleShowPassword = (e) => {
     e.preventDefault();
-    if(showPassword=='show') setShowPassword('hide');
-    else setShowPassword('show');
-  }
+    setShowPassword((prev) => (prev === "show" ? "hide" : "show"));
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100">
@@ -45,10 +65,7 @@ export default function Signup() {
             </span>
           </Link>
         </p>
-        <form
-          onSubmit={onSignup}
-          className="w-full flex flex-col gap-y-6"
-        >
+        <form onSubmit={onSignup} className="w-full flex flex-col gap-y-6">
           <div className="flex flex-col">
             <label
               htmlFor="userName"
@@ -93,7 +110,7 @@ export default function Signup() {
               Password
             </label>
             <input
-              type= {showPassword=='show'?'password':'text'}
+              type={showPassword === "show" ? "password" : "text"}
               name="password"
               id="password"
               value={user.password}
@@ -102,14 +119,18 @@ export default function Signup() {
               className="px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your password"
             />
-            <button onClick={handleShowPassword} className="p-2 bg-yellow-400 mt-2 rounded-xl text-black">{showPassword}</button>
+            <button
+              onClick={handleShowPassword}
+              className="p-2 bg-yellow-400 mt-2 rounded-xl text-black"
+            >
+              {showPassword}
+            </button>
           </div>
-         
           <button
             type="submit"
-            className="w-full py-3 rounded-lg bg-blue-600 text-gray-100 font-medium text-lg hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all"
+            className="w-full py-3 rounded-lg bg-blue-600 text-gray-100 font-medium text-lg hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all flex justify-center items-center"
           >
-            Sign Up
+            {Loading ? <RiLoader2Line className="animate-spin" /> : "Sign Up"}
           </button>
         </form>
         <p className="mt-8 text-sm text-gray-500">

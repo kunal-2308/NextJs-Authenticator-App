@@ -1,14 +1,13 @@
 import mongoose from "mongoose";
 
-export const Connect = async() =>{
-    try {
-        let connect = await mongoose.connect(process.env.MONGO_URI);
-        if(connect){
-            console.log('Connect Successfull To DB');
-        }
-    } catch (error) {
-        console.log('Something went wrong');
-        console.log(error);
-    }
-}
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    process.exit(1); // Exit with failure
+  }
+};
 
+export default connectDB;
