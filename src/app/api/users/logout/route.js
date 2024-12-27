@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 
 export const GET = async () => {
   try {
-    cookies().delete("token");
+     const cookieStore = cookies();
+    cookieStore.delete('token');
 
     return NextResponse.json({
       message: "Logout successful",
